@@ -357,14 +357,16 @@ def jobAi():
          try:
 
              try:
-                 getAI  = master.execute(1, cst.READ_INPUT_REGISTERS, 0,aiArray[0])
-                 if(debugValue == 'True'): textB.insert(1.0,time.strftime('%d-%m-%Y %H:%M:%S') + " Get answer Analog - " +str(getAI)+"\n")
-                 varError = False
+                 if(aiArray[0] > 0):
+                     getAI  = master.execute(1, cst.READ_INPUT_REGISTERS, 0,aiArray[0])
+                     if(debugValue == 'True'): textB.insert(1.0,time.strftime('%d-%m-%Y %H:%M:%S') + " Get answer Analog - " +str(getAI)+"\n")
+                 #    varError = False
                  ################### to log file
-                 if(time.strftime('%S')=='00'):
-                     logFile(time.strftime('%H:%M:%S') + " Get answer Analog - " +str(getAI) )
-                     if(debugValue == 'True'):  textB.delete('1.0', END)
-                     gc.collect()
+                     if(time.strftime('%S')=='00'):
+                         logFile(time.strftime('%H:%M:%S') + " Get answer Analog - " +str(getAI) )
+                         if(debugValue == 'True'):  textB.delete('1.0', END)
+                         gc.collect()
+                 varError = False
              except:
                  print 'getAI except '
                  if(debugValue == 'True'): textB.insert(1.0,time.strftime('%d-%m-%Y %H:%M:%S') + " Not answer Analog \n")
@@ -715,15 +717,16 @@ def openLogWin():
 
      stringLines=0
      win = Toplevel(root)
-     win.geometry('1800x600+50+200')
+     win.geometry('600x600+50+200')
      win.title("Connection log" )
      win["bg"] = "black"
      win.transient(root)
      win.resizable('y', 'y')
-     textLog=Text(win,font='Arial 12',width=500,height=50,wrap=WORD, bg='white',bd=0,fg='black')
+     textLog=Text(win,font='Arial 12',width=500,height=50,wrap=WORD, bg='black',bd=0,fg='white')
      textLog.place(x=1,y=1)
-     win.attributes('-alpha', 0.8)
+     win.attributes('-alpha', 0.65)
      win.bind('<Destroy>',p)
+    # win.overrideredirect(1)
      win.after(1, logJob)
 
 
@@ -782,7 +785,8 @@ if __name__ == "__main__":
 
 
      root = Tk()
-     root.title("pyScada modbusTCP v2.19")
+   #  root.overrideredirect(1)
+     root.title("ScadaPy modbusTCP v2.20")
      if(os.name=='nt'): root.state("zoomed")
      else:  root.state("normal")
      root["bg"] = "black"
