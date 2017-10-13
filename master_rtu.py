@@ -8,7 +8,7 @@ import modbus_tk.modbus_tcp as modbus_tcp
 from modbus_tk import modbus_rtu
 import serial
 logger = modbus_tk.utils.create_logger("console")
-
+import gc
 
 if __name__ == "__main__":
 
@@ -21,6 +21,10 @@ if __name__ == "__main__":
      setFrom=[]
      setRange=[]
      rtuAddress=[]
+     dataRIR=[]
+     dataRDI=[]
+     dataRC=[]
+     dataRHR=[]
      units=0
      try:
          count=0
@@ -37,6 +41,16 @@ if __name__ == "__main__":
              rtuAddress.append(i)
 
              i = i + 1
+
+
+         for c in range(0,1000 ):
+             dataRIR.append(c)
+             dataRDI.append(c)
+             dataRC.append(c)
+             dataRHR.append(c)
+             c+=1
+
+
          with open('setting.cfg') as f:
              for line in f:
                  param[count]=line.split(';')
@@ -80,6 +94,7 @@ if __name__ == "__main__":
 
      try:
          print 'Starting server...'
+         time.sleep(3.0)
          while True:
 
              i=0
@@ -89,10 +104,6 @@ if __name__ == "__main__":
 
 
                  if(reg[i] == 'READ_INPUT_REGISTERS'):
-                     dataRIR=[]
-                     for c in range(0, int(rangeAdr[i]) ):
-                         dataRIR.append(c)
-                         c+=1
 
                      try:
                          dataRIR= master.execute(int(rtuAddress[i]), cst.READ_INPUT_REGISTERS, int(startAdr[i]), int(rangeAdr[i])  )
@@ -102,61 +113,55 @@ if __name__ == "__main__":
                          serialPort.flush()
 
                          print 'rtu' , rtuAddress[i],'READ_INPUT_REGISTERS',dataRIR
-                     except:
-                         for c in range(0,int(rangeAdr[i])  ):
-                             dataRIR[c] = 0
-                             c+=1
+                         dataRIR=None
+                         gc.collect()
 
-                         print 'rtu' , rtuAddress[i],'READ_INPUT_REGISTERS','Fail to connect',dataRIR
+                     except:
                          slave.set_values('2', int(setFrom[i]), dataRIR)
+                         dataRIR=None
+                         gc.collect()
 
 
                  if(reg[i] == 'READ_DISCRETE_INPUTS'):
-                     dataRDI=[]
-                     for c in range(0, int(rangeAdr[i]) ):
-                         dataRDI.append(c)
-                         c+=1
+
                      try:
                          dataRDI= master.execute(int(rtuAddress[i]), cst.READ_DISCRETE_INPUTS, int(startAdr[i]), int(rangeAdr[i])  )
                          slave.set_values('1', int(setFrom[i]), dataRDI)
                          serialPort.flushInput()
                          serialPort.flushOutput()
                          serialPort.flush()
-
+                         gc.collect()
+                         dataRDI=None
                          print  'rtu' , rtuAddress[i],'READ_DISCRETE_INPUTS',dataRDI
                      except:
-                         for c in range(0,int(rangeAdr[i])  ):
-                             dataRDI[c] = 0
-                             c+=1
+
                          print 'rtu' , rtuAddress[i],'READ_DISCRETE_INPUTS','Fail to connect' ,dataRDI,len(dataRDI)
                          slave.set_values('1', int(setFrom[i]), dataRDI)
+                         gc.collect()
+                         dataRDI=None
 
 
                  if(reg[i] == 'READ_COILS'):
-                     dataRC=[]
-                     for c in range(0, int(rangeAdr[i]) ):
-                         dataRC.append(c)
-                         c+=1
+
                      try:
                          dataRC= master.execute(int(rtuAddress[i]), cst.READ_COILS, int(startAdr[i]), int(rangeAdr[i])  )
                          slave.set_values('0', int(setFrom[i]), dataRC)
                          serialPort.flushInput()
                          serialPort.flushOutput()
                          serialPort.flush()
+                         gc.collect()
 
                          print  'rtu' , rtuAddress[i],'READ_COILS',dataRC
+                         dataRC=None
                      except:
-                         for c in range(0,int(rangeAdr[i])  ):
-                             dataRC[c] = 0
-                             c+=1
+
                          slave.set_values('0', int(setFrom[i]), dataRC)
                          print 'rtu' , rtuAddress[i],'READ_COILS','Fail to connect',dataRC
+                         gc.collect()
+                         dataRC=None
 
                  if(reg[i] == 'READ_HOLDING_REGISTERS'):
-                     dataRHR=[]
-                     for c in range(0, int(rangeAdr[i]) ):
-                         dataRHR.append(c)
-                         c+=1
+
                      try:
                          dataRHR= master.execute(int(rtuAddress[i]), cst.READ_HOLDING_REGISTERS, int(startAdr[i]), int(rangeAdr[i])  )
                          slave.set_values('3', int(setFrom[i]), dataRHR)
@@ -164,15 +169,18 @@ if __name__ == "__main__":
                          serialPort.flushOutput()
                          serialPort.flush()
                          print  'rtu' ,rtuAddress[i],'READ_HOLDING_REGISTERS',dataRHR
+                         gc.collect()
+                         dataRHR=None
 
                      except:
-                         for c in range(0,int(rangeAdr[i])  ):
-                             dataRHR[c] = 0
-                             c+=1
+
                          slave.set_values('3', int(setFrom[i]), dataRHR)
                          print 'rtu ', rtuAddress[i],'READ_HOLDING_REGISTERS','Fail to connect',dataRHR
+                         gc.collect()
+                         dataRHR=None
 
              time.sleep(0.1)
+             gc.collect()
 
      except modbus_tk.modbus.ModbusError, e:
          logger.error("%s- Code=%d" % (e, e.get_exception_code()))
